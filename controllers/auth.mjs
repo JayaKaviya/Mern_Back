@@ -425,10 +425,17 @@ export const searchUser=async(req,res)=>{
             {username: {$regex:query, $options:"i"}}
          ]   
         }).select("-password -secret");  //deselecting
+        
+        // .select("_id name username image"); 
 
-        // .select("_id name username image");
+        if (!user) 
+            { 
+              return res.json({ 
+                 error: "No User found" 
+              }) 
+            };
 
-        res.json(user);
+        res.json(user); 
     }catch(err){ 
         console.log(err);
     }
