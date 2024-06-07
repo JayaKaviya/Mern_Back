@@ -3,14 +3,14 @@ const { Schema } = mongoose;
 const userSchema=new Schema({ 
        name:{ 
         type:String, 
-        trim:true, //beg & end space trimmed out 
+        trim:true, 
         required : true,
        }, 
        email:{ 
         type:String, 
         trim:true, 
         required : true,
-        unique: true, //one user-one email
+        unique: true, 
        }, 
        password : { 
         type:String, 
@@ -27,7 +27,7 @@ const userSchema=new Schema({
               unique:true, 
               required : true,
        },
-       // about of user 
+      
        about:{ }, 
        image:{ 
               url:String, 
@@ -43,4 +43,3 @@ const userSchema=new Schema({
 }, {timestamps : true}); 
 
 export default mongoose.model('User',userSchema);  
-//creating model using model()

@@ -16,9 +16,6 @@ router.post('/create-post', requireSignin,createPost);
  
 router.post('/upload-image', requireSignin,
 formidable({maxFileSize : 5 * 1024 * 1024 }),uploadImage);
-                                                        
-//5mb ie. 1mb=1000kb 
-
 
 router.get('/user-posts',requireSignin,postsByUser);
 
@@ -45,7 +42,7 @@ router.get('/posts',posts)
 router.get('/post/:_id',getPost);
  
 
-//admin
+
 router.delete('/admin/delete-post/:_id',requireSignin,isAdmin,deletePost); 
 
 export default router;

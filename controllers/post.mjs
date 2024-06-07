@@ -13,13 +13,12 @@ cloudinary.config({
 
 export const createPost=async(req,res)=>{ 
 
-    // console.log('post=> ',req.body)  
-
+    
     const {content,image}=req.body; 
     if(!content.length){ 
         return res.json( 
             { 
-             error: 'Content is required' ,  //sending frontend- data.error in dashboard
+             error: 'Content is required' ,  
             }
         );
     }
@@ -30,7 +29,6 @@ export const createPost=async(req,res)=>{
         const decoded=jwt.verify(token,process.env.JWT_SECRET)
         console.log(decoded)  
 
-        // console.log(req.headers) // req.users._id -not
      const post=new Post({content,image, postedBy: decoded._id}); 
      await post.save();  
      
@@ -40,7 +38,7 @@ export const createPost=async(req,res)=>{
         "-password -secret"
      );
 
-     res.json(postWithUser); // sending data to frontend
+     res.json(postWithUser);
     }
     catch(err){ 
        console.log(err); 
@@ -49,11 +47,10 @@ export const createPost=async(req,res)=>{
 } 
 
 export const uploadImage=async(req,res)=>{ 
-    //  console.log("req",req.files) 
-
+   
     try{ 
         const result=await cloudinary.uploader.upload(req.files.image.path); 
-        // console.log("uploaded image url =>",result); 
+        
         res.json({ 
             url : result.secure_url, 
             public_id : result.public_id,
@@ -69,14 +66,11 @@ export const postsByUser=async(req,res)=>{
         const decoded=jwt.verify(token,process.env.JWT_SECRET)
         console.log(decoded)  
       
-        // const posts=await Post.find({postedBy :decoded._id }) - currently loggedin user posts
 
          const posts=await Post.find()
          .populate("postedBy", "_id name image")
-            .sort({createdAt :-1}) //-1 to give u the latest post
-            .limit(10); //10 posts
-       
-            // console.log('posts : ',posts) 
+            .sort({createdAt :-1}) 
+            .limit(10); 
             res.json(posts);
     } 
     catch(err){ 
@@ -98,13 +92,12 @@ export const userPost=async (req,res)=>{
 } 
 
 export const updatePost=async(req,res)=>{ 
-    // console.log('Post updated =>',req.body); // data from frontend-image,content 
-
-    try{                      //id from frontend(postid),
+   
+    try{                     
         const post=await Post.findByIdAndUpdate(req.params._id,req.body,{ 
-             new:true //must to update & return the updated argument
+             new:true 
         });  
-        //  console.log(post)
+      
 
         res.json(post);
 
@@ -117,7 +110,7 @@ export const deletePost=async(req,res)=>{
   
     try{ 
         const post=await Post.findByIdAndDelete(req.params._id); 
-        //remove the image from cloudinary 
+      
         if(post.image && post.image.public_id){ 
             const image=await cloudinary.uploader.destroy(post.image.public_id);
         } 
@@ -139,21 +132,20 @@ export const newsFeed=async(req,res)=>{
         const user=await User.findById(decoded._id); 
         
         let following=user.following; 
-        following.push(decoded._id); //adding the req. user as following 
+        following.push(decoded._id); 
 
 
-        //pagination 
-        const currentPage=req.params.page || 1; //taking defalt value 1 if nothing recieved 
+    
+        const currentPage=req.params.page || 1; 
         const perPage=3;
 
         const posts=await post.find({postedBy: {$in : following} })
         .skip((currentPage-1)*perPage)
         .populate('postedBy','_id name image')
         .populate('comments.postedBy',"_id name image")
-         .sort({createdAt : -1}) //getting latest posts 
+         .sort({createdAt : -1}) 
          .limit(perPage); 
-         
-        //  .limit(10); //limiting 10 posts
+       
 
         res.json(posts);
 
@@ -172,7 +164,7 @@ export const likePost=async(req,res)=>{
 
         const post=await Post.findByIdAndUpdate(req.body._id,
             { 
-                     //likes array
+                     
             $addToSet: {likes : decoded._id},
             },
             {new : true}
@@ -194,7 +186,7 @@ export const unlikePost=async(req,res)=>{
 
         const post=await Post.findByIdAndUpdate(req.body._id,
             { 
-                    //likes array now will have the liked user's id
+                   
             $pull: {likes : decoded._id},
             },
             {new : true}
@@ -220,10 +212,10 @@ export const addComment=async(req,res)=>{
             $push : { comments: {text : comment, 
             postedBy : decoded._id}}
         },{  new : true}
-        ).populate('postedBy',"_id name image") //post postedby
-        .populate('comments.postedBy',"_id name image");  //comments postedby
+        ).populate('postedBy',"_id name image") 
+        .populate('comments.postedBy',"_id name image");  
 
-        res.json(post); //post updated with the comment
+        res.json(post);
 
     }catch(err){ 
         console.log(err);
@@ -240,11 +232,11 @@ export const removeComment=async(req,res)=>{
 
         const {postId, comment} =req.body; 
         const post=await Post.findByIdAndUpdate(postId, { 
-            $pull : { comments: {_id : comment._id }}, //pull based on comment id
+            $pull : { comments: {_id : comment._id }}, 
         },{  new : true}
         );
 
-        res.json(post); //post updated with the comment 
+        res.json(post); 
 
     }catch(err){ 
         console.log(err);

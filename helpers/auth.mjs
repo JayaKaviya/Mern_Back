@@ -17,7 +17,7 @@ export const hashPassword=(password)=> {
         });
 }; 
                             
-           //from client(plain password),from db
+         
 export const comparePassword=(password,hashed)=>{ 
     return bcrypt.compare(password,hashed);
 }

@@ -14,16 +14,16 @@ const router = express.Router();
 
 router.post('/register', register); 
 router.post('/login',login);
-        //endpoint, validating token using middleware
+      
 router.get('/current-user',requireSignin,currentUser); 
  
 router.post('/forgot-password',forgotPassword);
 
 
 router.put('/profile-update',requireSignin,profileUpdate); 
-                    //only for logedin users
+                  
 router.get('/find-people',requireSignin,findPeople); 
-                                        //follower  //following
+                                      
 router.put('/user-follow',requireSignin,addFollower,userFollow);
 
 router.put('/user-unfollow',requireSignin,removeFollower,userUnfollow);

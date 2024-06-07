@@ -4,16 +4,14 @@ import { hashPassword,comparePassword } from "../helpers/auth.mjs";
 
 import jwt from 'jsonwebtoken';  
 
-import {nanoid} from "nanoid"; // random chars
+import {nanoid} from "nanoid"; 
 
 
 
 export  const register=async (req, res) => {
-    // console.log('REGISTERED ENDPOINT =>', req.body);
-     
+   
     const {name,email,password,secret}=req.body; 
 
-    //validation 
     if(!name) { 
         return res.json({ 
             error: "Name is required",
@@ -43,7 +41,6 @@ export  const register=async (req, res) => {
 
 
 
-                                 //email:email(both key value same)
     const exist= await User.findOne({email}) 
     if(exist) { 
         return res.json({ 
@@ -51,7 +48,7 @@ export  const register=async (req, res) => {
         })
     }
 
-    //hash password 
+
     const hashedPassword=await hashPassword(password);
      
    
@@ -62,7 +59,6 @@ export  const register=async (req, res) => {
         secret,
         username:nanoid(6)}); 
     try{ 
-        //to save  
         await user.save(); 
         console.log("REGISTERED USER =>",user);
         return res.json({
@@ -81,21 +77,19 @@ export  const register=async (req, res) => {
 }; 
 
 export const login= async (req,res)=>{ 
-    // console.log(req.body)
+  
    try{ 
-      //check if our db has user with that email 
+      
       const {email,password}=req.body; 
       
-      const user=await User.findOne({email}); //hashed version from the db
+      const user=await User.findOne({email}); 
       if (!user) 
       { 
         return res.json({ 
            error: "No user found" 
         })
       }
-    //   console.log("user",user) 
-
-      //check password 
+   
       const match=await comparePassword(password,user.password); 
  
       if(!match) 
@@ -104,20 +98,15 @@ export const login= async (req,res)=>{
             error: "Wrong Password"
         })
       } 
-    //   console.log("match",match) 
-
-
-      //create signed JWT token 
-      //const token = jwt.sign(payload, secretKey, { expiresIn: expiresInInSeconds });
-                          // user's 
+   
       const token=jwt.sign({_id:user._id},process.env.JWT_SECRET,{
-        expiresIn:"7d", //"1200" - 20sec * 60
+        expiresIn:"7d", 
      }); 
-    //after 7 days, the user has to login again..bcoz the token will expiry
+   
      user.password=undefined; 
      user.secret=undefined; 
      res.json({
-        token, //storing this in client side
+        token, 
         user,
     });
    } 
@@ -155,40 +144,12 @@ export const currentUser = async (req, res) => {
 };
 
 
-// export const currentUser=async(req,res) =>{ 
-
-    
-//     const token=req.headers.authorization.split(' ')[1]
-//     //  console.log(req.headers.authorization.split(' ')[1])
-//     const decoded=jwt.verify(token,process.env.JWT_SECRET)
-//      console.log(decoded)  
-
-//      if (!token) {
-//         return res.status(401).json({ error: 'Unauthorized: Token not provided' });
-//     }
-
-
-//      try{ 
-//           const user=await User.findById(decoded._id)  
-//         //   res.json(user);
-//           res.json({ok : true})
-//      } 
-//      catch(err){ 
-//         console.log(err); 
-//         res.sendStatus(400).json({ error: 'Unauthorized: Invalid token' });
-//      }
-// }
- 
- 
 
 export const forgotPassword=async(req,res)=>{ 
-    // console.log(req.body); 
-
- 
- 
+   
         const {email,newPassword,secret}=req.body; 
 
-        //validation 
+     
 
         if(!newPassword || newPassword.length < 6) 
         { 
@@ -233,17 +194,8 @@ export const forgotPassword=async(req,res)=>{
 
 
 
-
-
-
-
-
-
-
 export const profileUpdate=async(req,res)=>{ 
-    try{ 
-        // console.log("profile update ",req.body) 
-        
+    try{  
         const data={}; 
 
         if(req.body.username){ 
@@ -278,17 +230,15 @@ export const profileUpdate=async(req,res)=>{
         }
         const token = req.headers.authorization?.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        // console.log(decoded);
-                                           //req.user._id alternative
+       
         let user=await User.findByIdAndUpdate(decoded._id,data,{new : true}) 
-        // console.log('updated user',user); 
+     
         user.password=undefined; 
         user.secret=undefined; 
         res.json(user);
     }
     catch(err){ 
-        // if 2 user enters the same name mongodb throws an error 
-        // i.e duplicate error . its code is 11000
+       
         if(err.code == 11000){ 
            return res.json({error : "Duplicate username"});
         }
@@ -303,11 +253,9 @@ export const findPeople=async(req,res)=>{
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user=await User.findById(decoded._id);
 
-    //user.following 
+  
     let following=user.following; 
-    following.push(user._id); //pushing himself as following 
-         
-                                    //not including             //without pswrd and secret so '-'
+    following.push(user._id); 
     const people=await User.find({_id:{$nin : following}}).select('-password -secret').limit(10); 
     res.json(people);
   } 
@@ -315,8 +263,7 @@ export const findPeople=async(req,res)=>{
     console.log(err);
   }
 }
- 
-//middleware - addFollower 
+
 
 export const addFollower=async(req,res,next)=>{ 
    try{ 
@@ -339,9 +286,9 @@ export const userFollow=async(req,res)=>{
       
         const token = req.headers.authorization?.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET); 
-                                             //find the requested user
+                                            
           const user=await User.findByIdAndUpdate(decoded._id,{ 
-          //unique values
+          
             $addToSet: { following : req.body._id},
           }, { new : true}).select("-password -secret");
        
@@ -357,7 +304,7 @@ export const userFollowing=async(req,res)=>{
     try{ 
         const token = req.headers.authorization?.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET); 
-                                             //find the requested user
+                                            
           const user=await User.findById(decoded._id); 
 
           const following =await User.find({_id : user.following}).limit(100);  
@@ -371,7 +318,6 @@ export const userFollowing=async(req,res)=>{
 
 
 
-//middleware
 export const removeFollower=async(req,res,next)=>{ 
    try{ 
 
@@ -411,7 +357,6 @@ export const  userUnfollow=async(req,res,next)=>{
     }
 } 
 
-//Ryan in db - ryan from user , then send Ryan
 export const searchUser=async(req,res)=>{ 
    
     const {query}=req.params 
@@ -420,14 +365,11 @@ export const searchUser=async(req,res)=>{
     try{ 
         const user=await User.find({ 
          $or:[              
-      //special methd from mongodb ,case insensitive matching modifier - i
+      
             {name :{$regex:query, $options:"i"}}, 
             {username: {$regex:query, $options:"i"}}
          ]   
-        }).select("-password -secret");  //deselecting
-        
-        // .select("_id name username image"); 
-
+        }).select("-password -secret"); 
         if (!user) 
             { 
               return res.json({ 
@@ -445,7 +387,7 @@ export const getUser=async(req,res)=>{
     try{ 
         const user=await User.findOne({username: req.params.username})
         .select('-password -secret') 
-        // console.log(user);
+        
         res.json(user);
     } 
     catch(err){ 
